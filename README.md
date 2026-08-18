@@ -35,3 +35,5 @@ Reducir errores y facilitar seguimiento, en resumen agilizar procesos y mejorar 
 ## Tecnologías
 Kotlin Multiplatform · Compose Multiplatform · targets Android y Desktop
 (iOS preparado: requiere macOS para compilar)
+
+##
