@@ -1,0 +1,36 @@
+# Actas del equipo DevRooster - MilkData
+
+## Acta 1 – Semana 1 – 17 de agosto de 2026
+
+**Asistentes:** Olger Meza Rupa, Raphael Enrique Roger Mamani Vilca, [Nombre 3], [Nombre 4]
+
+**Acuerdos:**
+
+1. **Idea elegida:** **MilkData** – Sistema integral para el registro, control de calidad y trazabilidad de la producción lechera.  
+   *Razón:* Permite digitalizar el pesaje diario por proveedor, registrar parámetros de calidad (grasa, proteína, temperatura) y generar reportes automáticos de pago, resolviendo el caos de las planillas en papel y reduciendo errores de cálculo.
+
+2. **Ideas descartadas:**  
+   - *AgroStock* (Inventario de insumos agrícolas) → Descartado porque no aprovecha el enfoque en datos cuantitativos de producción diaria.  
+   - *VetConnect* (Citas veterinarias) → Descartado porque se aleja del objetivo principal de gestión de datos numéricos y pagos.
+
+3. **Roles de la semana (Sprint 0 - Configuración inicial):**
+
+| Rol | Responsable |
+| :--- | :--- |
+| **Product Owner & Líder Técnico** | Olger Meza Rupa |
+| **Scrum Master & Backend (API/Rutas)** | Raphael Enrique Roger Mamani Vilca |
+| **Desarrollador Frontend (UI/UX)** | [Nombre 3] |
+| **Desarrollador de Base de Datos (Modelado)** | [Nombre 4] |
+
+4. **Horario fijo de reunión semanal:**  
+   *Miércoles 19:00 hrs* (vía Microsoft Teams / Discord) para sincronización de avances y resolución de bloqueos.
+
+**Compromisos individuales de la semana (entregables para el próximo miércoles):**
+
+- **Olger Meza Rupa:** Redactar la visión del proyecto y los casos de uso principales en el `README.md`. Crear el esqueleto del proyecto con carpetas (`/docs`, `/src`, `/tests`).
+
+- **Raphael Enrique Roger Mamani Vilca:** Investigar y definir el framework backend (se propone **FastAPI** o **Flask**). Crear el endpoint básico de health-check y conectar la base de datos en modo local.
+
+- **[Nombre 3]:** Realizar los wireframes de baja fidelidad (al menos 3 pantallas: Registro de pesaje, Tablero de calidad, Reporte de pagos) y subirlos a la carpeta `/docs/design`. Decidir si usaremos React o Vue para el frontend.
+
+- **[Nombre 4]:** Diseñar el Modelo Entidad-Relación (MER) con al menos 4 tablas: `Proveedores`, `Lotes_Produccion`, `Controles_Calidad` y `Pagos`. Generar el script SQL inicial y documentarlo en `docs/database_schema.md`.
