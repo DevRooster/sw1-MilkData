@@ -31,6 +31,6 @@
 
 - **Raphael Enrique Roger Mamani Vilca:** Investigar y definir el framework backend (se propone **FastAPI** o **Flask**). Crear el endpoint básico de health-check y conectar la base de datos en modo local.
 
-- **[Nombre 3]:** Realizar los wireframes de baja fidelidad (al menos 3 pantallas: Registro de pesaje, Tablero de calidad, Reporte de pagos) y subirlos a la carpeta `/docs/design`. Decidir si usaremos React o Vue para el frontend.
+- **Ciro Garry K. Machicado Velasquez:** Realizar los wireframes de baja fidelidad (al menos 3 pantallas: Registro de pesaje, Tablero de calidad, Reporte de pagos) y subirlos a la carpeta `/docs/design`. Decidir si usaremos React o Vue para el frontend.
 
 - **[Nombre 4]:** Diseñar el Modelo Entidad-Relación (MER) con al menos 4 tablas: `Proveedores`, `Lotes_Produccion`, `Controles_Calidad` y `Pagos`. Generar el script SQL inicial y documentarlo en `docs/database_schema.md`.
