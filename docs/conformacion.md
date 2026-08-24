@@ -19,7 +19,7 @@
 
 **Justificación**: Digitaliza el pesaje diario por proveedor (~500 productores), registra parámetros de calidad (densidad para detección de adulteración), envía notificaciones push a proveedores y genera reportes automáticos. Resuelve el desorden de los registros manuales en hojas y minimiza errores de cálculo.
 
-**Alcance específico (6to ciclo - App Móvil)**:
+**Alcance específico (App Móvil)**:
 - Registro de proveedores y acopiadores (con soporte offline)
 - Registro de entregas diarias de leche
 - Análisis de densidad (detección de adulteración)
@@ -40,7 +40,7 @@
 | Rol | Responsable |
 |-----|-------------|
 | Product Owner & Líder Técnico | Olger Meza Rupa |
-| Scrum Master & Backend (Express + TypeScript) | Raphael Enrique Roger Mamani Vilca |
+| Scrum Master & Backend (---) | Raphael Enrique Roger Mamani Vilca |
 | Desarrollador Frontend (UI/UX - App Móvil) | Ciro Garry K. Machicado Velasquez |
 | Desarrollador de Base de Datos (Modelado) | [Nombre 4] |
 
@@ -59,8 +59,8 @@
 - Contactar al regidor de la Municipalidad de Huata para coordinar la visita.
 
 ### Raphael Enrique Roger Mamani Vilca
-- Implementar el backend con **Express + TypeScript** (API REST).
-- Configurar el endpoint de **health-check** y conexión a base de datos (PostgreSQL).
+- Implementar el backend con **---** (API REST).
+- Configurar el endpoint de **health-check** y conexión a base de datos.
 - Crear el módulo base de **proveedores** (CRUD).
 
 ### Ciro Garry K. Machicado Velasquez
@@ -80,7 +80,7 @@
   6. Reuniones / Asistencia
 - Generar y documentar el script SQL inicial en `docs/database_schema.md`.
 
----
+<!-- ---
 
 ## 4. Próximos Pasos
 
@@ -96,4 +96,4 @@
 - El proyecto se desarrollará en colaboración con la **Municipalidad de Huata**.
 - La aplicación móvil debe funcionar en **zonas sin cobertura** (modo offline).
 - Las notificaciones deben incluir un **encabezado distintivo** de la planta.
-- Existen **dos formas de acopio**: directo (proveedor lleva a planta) y por acopiador (recolección en zonas).
+- Existen **dos formas de acopio**: directo (proveedor lleva a planta) y por acopiador (recolección en zonas). -->
