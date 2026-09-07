@@ -1,39 +1,180 @@
-# [MilkData]
+# MilkData API
 
-> [MilkData, empresa de acopio de leche]
+Backend REST para la gestion de proveedores, entregas y control de calidad.
 
-## Problema que resuelve
-[Un sistema para la gestion de un acopio de leche, mejorara el registro de leche con un buen control de calidad
-Reducir errores y facilitar seguimiento, en resumen agilizar procesos y mejorar la toma de decisiones brindando informacion confiable ]
+## Requisitos
 
-## Público objetivo
-[Trabajadores de la empresa del acopio de lecha]
+- Node.js 18 o superior
+- pnpm
+- MySQL 8
 
-## Funcionalidades previstas
-[F1: registrar, editar y consultar productores]
-[F2: registrar y gestionar entregas de leche]
-[F3: registrar el control de calidad de cada entrega]
-[F4: calcular el monto a pagar según cantidad y calidad]
-[F5: consultar y filtrar entregas por fecha o productor]
-[F6: generar reportes de entregas, producción y calidad]
-[F7: trabajar sin conexión y sincronizar posteriormente]
+## Instalacion
 
-## Entidad principal del CRUD
-[Entrega de leche: ID, productor, fecha y hora, cantidad de litros, temperatura, acidez, densidad, resultado de calidad, precio por litro, monto estimado y observaciones.]
+```bash
+pnpm install
+```
 
-## Capacidad prevista
-[Funcionamiento sin conexión y sincronización posterior de datos. Filtros para consultas y generación de reportes de entregas, producción y calidad.]
+Copia `.env.example` a `.env` y ajusta las credenciales de MySQL:
 
-## Equipo [MilkData]
-| Integrante | M0001 | Rol semana 1 |
-|---|---|---|
-| [Raphael Enrique Roger Mamani Vilca] | [0001] | Coordinación |
-| [Ciro Garry K. Machicado Velasquez] | [0002] | Lógica y datos |
-| [Olger Meza Rupa] | [0003] | UI |
-| [Adan Yana] | [0004] | QA y documentación |
+```bash
+copy .env.example .env
+```
 
-## Tecnologías
-Kotlin Multiplatform · Compose Multiplatform · targets Android y Desktop
-(iOS preparado: requiere macOS para compilar)
+Variables principales:
 
-##
+```text
+PORT=3000
+DB_NAME=milkdata
+DB_USER=root
+DB_PASSWORD=
+DB_HOST=localhost
+DB_PORT=3306
+JWT_SECRET=mi-secreto-super-seguro-para-milkdata-2026
+JWT_EXPIRES_IN=7d
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+```
+
+## Base de datos
+
+Crea la base de datos antes de sincronizar las entidades:
+
+```bash
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS milkdata CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+node sync-entities.js
+```
+
+El comando de sincronizacion usa las credenciales de `.env`.
+
+## Seed
+
+El seed crea 5 roles, 4 unidades, 4 zonas, el usuario administrador y 5 proveedores:
+
+```bash
+pnpm run seed
+```
+
+Es idempotente: usa claves naturales (`nombre`, `email`, `dni`) y no duplica registros al ejecutarse varias veces.
+
+Credenciales del administrador:
+
+```text
+email: admin@milkdata.com
+password: Admin123!
+```
+
+## Servidor
+
+Desarrollo con nodemon:
+
+```bash
+pnpm run dev
+```
+
+Produccion/local sin watcher:
+
+```bash
+pnpm start
+```
+
+El servidor escucha por defecto en `http://localhost:3000`.
+
+## Tests
+
+Suite completa con cobertura:
+
+```bash
+pnpm test
+```
+
+Pruebas unitarias:
+
+```bash
+pnpm run test:unit
+```
+
+Pruebas de integracion:
+
+```bash
+pnpm run test:integration
+```
+
+Las pruebas de reportes crean entregas y controles reales en MySQL, validan los calculos y limpian sus datos temporales.
+
+## Endpoints principales
+
+### Salud y documentacion
+
+```text
+GET  /health
+GET  /api-docs/
+GET  /api-docs.json
+```
+
+### Autenticacion
+
+```text
+POST /auth/register
+POST /auth/login
+```
+
+Ejemplo de login:
+
+```bash
+curl -X POST http://localhost:3000/auth/login ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"admin@milkdata.com\",\"password\":\"Admin123!\"}"
+```
+
+La respuesta contiene un token JWT. Usalo como `Authorization: Bearer <token>` en rutas protegidas.
+
+### Recursos
+
+```text
+POST   /proveedores
+PUT    /proveedores/:id
+DELETE /proveedores/:id
+
+GET    /unidades
+POST   /unidades
+PUT    /unidades/:id
+DELETE /unidades/:id
+
+GET    /zonas
+POST   /zonas
+GET    /entregas
+POST   /entregas
+GET    /calidad
+POST   /calidad
+GET    /notificaciones
+POST   /notificaciones
+POST   /notificaciones/enviar
+GET    /asistencias
+POST   /asistencias
+```
+
+### Reportes
+
+```text
+GET /reportes/contraste
+GET /reportes/calidad
+GET /reportes/calidad-proveedor
+```
+
+Las respuestas usan el formato:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Operacion exitosa",
+  "errors": []
+}
+```
+
+## Estado conocido
+
+- Swagger documenta actualmente login, proveedores y reporte de calidad; los aproximadamente 37 endpoints restantes estan pendientes de documentacion.
+- El circuit breaker y retry estan aplicados al envio de notificaciones.
+- Logout devuelve confirmacion, pero no invalida JWT ya emitidos porque la autenticacion es stateless.
+- Bulkhead, timeout, load balancer y rate limiter general estan omitidos hasta que exista un flujo externo que los necesite.
