@@ -13,6 +13,28 @@ class AuthService {
       throw error;
     }
 
+    const role = await Rol.findByPk(rolId);
+    if (!role) {
+      const error = new Error('El rol especificado no existe.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const adminRole = await Rol.findOne({ where: { nombre: 'admin' } });
+    if (!adminRole) {
+      const error = new Error('El rol admin no está configurado.');
+      error.statusCode = 400;
+      throw error;
+    }
+    const adminExists = adminRole
+      ? await Usuario.findOne({ where: { rolId: adminRole.id } })
+      : null;
+    if (!adminExists && Number(rolId) !== Number(adminRole.id)) {
+      const error = new Error('Debe existir un administrador antes de registrar otros roles.');
+      error.statusCode = 400;
+      throw error;
+    }
+
     const hashedPassword = await securityAuthService.hashPassword(password);
     const usuario = await usuarioRepository.create({
       nombre,

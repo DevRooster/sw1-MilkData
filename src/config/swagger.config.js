@@ -71,7 +71,8 @@ const swaggerDefinition = {
     '/auth/register': {
       post: {
         tags: ['Auth'],
-        summary: 'Registrar usuario',
+        summary: 'Registrar usuario (bootstrap o admin autenticado)',
+        description: 'Durante el bootstrap, cuando aún no existe ningún usuario admin, solo se permite crear el primer admin sin token. Después, la ruta requiere un JWT válido con rol admin. OpenAPI no modela esta condición dinámica; por eso se documentan 401 y 403 además de 201/400/409.',
         requestBody: {
           required: true,
           content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterRequest' } } },
@@ -82,6 +83,8 @@ const swaggerDefinition = {
             content: { 'application/json': { schema: { $ref: '#/components/schemas/StandardResponse' } } },
           },
           400: { description: 'Payload inválido o rolId no válido' },
+          401: { description: 'Token requerido después del bootstrap' },
+          403: { description: 'El token pertenece a un usuario no admin' },
           409: { description: 'El email ya está registrado' },
         },
       },
