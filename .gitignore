@@ -1,9 +1,44 @@
-node_modules/
-.env
-.env.local
+# Raiz del repositorio: contiene backend/ y frontend/.
+#
+# backend/ tiene su propio .gitignore, porque sus reglas (node_modules, uploads)
+# solo aplican a esa carpeta. Este archivo cubre el lado de Flutter.
+
+# --- Flutter / Dart (frontend/) -------------------------------------------
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
 coverage/
-logs/
-*.log
+
+# Credenciales de firestore y firma en android/
+**/android/local.properties
+**/android/key.properties
+*.jks
+*.keystore
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# iOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Sistema operativo
 .DS_Store
-npm-debug.log*
-pnpm-debug.log*
+Thumbs.db
+
+# Logs y temporales
+*.log
+logs/

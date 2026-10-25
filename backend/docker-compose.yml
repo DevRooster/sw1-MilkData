@@ -1,0 +1,161 @@
+# MilkData: API + MySQL en Docker.
+#
+#   docker compose up -d --build     levanta todo
+#   docker compose exec api node scripts/seed.js   carga los datos iniciales
+#   docker compose logs -f api      sigue el arranque
+#   docker compose down             apaga (conserva los datos)
+#   docker compose down -v          apaga y BORRA la base de datos
+#
+# La API queda en http://localhost:3000 y Swagger en /api-docs.
+
+name: milkdata
+
+services:
+  # -------------------------------------------------------------------------
+  # Base de datos
+  # -------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.4
+    container_name: milkdata-mysql
+    restart: unless-stopped
+
+    # MySQL 8.4 quitó `default_authentication_plugin`: `caching_sha2_password`
+    # ya es el único esquema por defecto y la variable hace que el servidor se
+    # niegue a arrancar con "unknown variable".
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_allowed_packet=64M
+      # Memoria acotada a propósito.
+      #
+      # MySQL reserva cachés pensadas para un servidor: con la configuración por
+      # defecto este contenedor se comía unos 470 MB. En una máquina de 8 GB, con
+      # Docker, Flutter y un navegador abiertos, eso es la diferencia entre que
+      # la suite de pruebas termine y que muera a mitad con el motor de Docker
+      # caído por falta de memoria.
+      #
+      # 64 MB de buffer caben de sobra: la base de desarrollo son unos pocos
+      # miles de filas.
+      - --innodb-buffer-pool-size=64M
+      - --performance-schema=OFF
+      - --innodb-log-buffer-size=8M
+      - --key-buffer-size=8M
+    # Los nombres son `MYSQL_*` a propósito, y no los `DB_*` de la API.
+    #
+    # Compose lee automáticamente el archivo `.env` de esta carpeta (el que usa
+    # la API cuando corre en Windows), y ahí `DB_USER=root`. Si se usara
+    # `${DB_USER}` aquí, MySQL recibiría MYSQL_USER=root y se niega a arrancar:
+    # root se configura solo con MYSQL_ROOT_PASSWORD. Con `MYSQL_*` no hay choque
+    # de nombres entre los dos mundos.
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-milkdata_root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-milkdata}
+      MYSQL_USER: ${MYSQL_USER:-milkdata}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-milkdata}
+
+    # 3307 en el host y no 3306: en Windows Laragon suele tener MySQL ahí, y dos
+    # procesos no pueden escuchar en el mismo puerto. Dentro del contenedor la
+    # API sigue hablando con el 3306 de siempre.
+    ports:
+      - "${DB_PORT_HOST:-3307}:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    # El healthcheck es lo que permite que la API espere a que MySQL acepte
+    # conexiones, en vez de arrancar y caerse.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-milkdata_root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  # -------------------------------------------------------------------------
+  # API
+  # -------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: milkdata-api
+    restart: unless-stopped
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+
+      # `mysql` es el nombre del servicio: dentro de la red de Compose, el
+      # DNS resuelve ese nombre al contenedor. Por eso aquí NO es localhost.
+      #
+      # Los valores vienen de `MYSQL_*` y no de `DB_*` por lo mismo que en el
+      # servicio de arriba: el `.env` de Windows define `DB_USER=root` y esa
+      # usuario no existe dentro del contenedor.
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-milkdata}
+      DB_USER: ${MYSQL_USER:-milkdata}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-milkdata}
+
+      JWT_SECRET: ${JWT_SECRET:-cambia-esto-en-produccion-por-una-cadena-larga-y-aleatoria}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
+
+      EMPRESA_NOMBRE: ${EMPRESA_NOMBRE:-Ecologica Huata}
+      EMPRESA_UBICACION: ${EMPRESA_UBICACION:-}
+      NOTIFICACION_PREFIJO: ${NOTIFICACION_PREFIJO:-[MilkData]}
+
+    ports:
+      - "${API_PORT:-3000}:3000"
+
+    volumes:
+      # Montaje directo a la carpeta del proyecto: así las imágenes subidas se
+      # ven desde Windows sin entrar al contenedor.
+      - ./uploads:/app/uploads
+
+  # -------------------------------------------------------------------------
+  # Pruebas
+  #
+  #   docker compose --profile test run --rm tests
+  #
+  # Corre sobre su propia base (`milkdata_test`) para no tocar los datos de
+  # desarrollo. Necesita credenciales administrativas porque dos pruebas crean y
+  # borran bases, cosa que el usuario de la aplicación no puede hacer.
+  # -------------------------------------------------------------------------
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    container_name: milkdata-tests
+    profiles: ['test']
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    environment:
+      NODE_ENV: test
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_TEST_DATABASE:-milkdata_test}
+      DB_USER: ${MYSQL_USER:-milkdata}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-milkdata}
+
+      # Usuario con permiso para `CREATE DATABASE`, solo para las pruebas.
+      TEST_DB_ADMIN_USER: root
+      TEST_DB_ADMIN_PASSWORD: ${MYSQL_ROOT_PASSWORD:-milkdata_root}
+
+      JWT_SECRET: test-secret-para-pruebas
+
+    command: sh -c "node scripts/seed.js && pnpm test --runInBand"
+
+volumes:
+  # Volumen con nombre: sobrevive a `docker compose down`, se borra con `-v`.
+  mysql_data:

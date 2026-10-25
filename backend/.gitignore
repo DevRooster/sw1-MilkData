@@ -1,0 +1,21 @@
+node_modules/
+coverage/
+logs/
+*.log
+bootstrap-output.txt
+
+# Imagenes subidas por la API (se conserva la carpeta vacia)
+uploads/*
+!uploads/.gitkeep
+
+# Entorno: nunca subir secretos ni sus variantes
+.env
+.env.*
+!.env.example
+# El de Docker lleva el JWT_SECRET y las contrasenas de MySQL.
+.env.docker.example
+!.env.docker.example
+
+.DS_Store
+npm-debug.log*
+pnpm-debug.log*

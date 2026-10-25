@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 9 (API 28) bloquea el HTTP sin cifrar por defecto. La API de MilkData
+  se sirve en la red local por HTTP, así que sin este archivo Android descarta
+  la conexión en silencio y la app solo ve un tiempo de espera agotado: el
+  error dice "el servidor tardó demasiado" cuando en realidad nadie llegó a
+  responder nunca.
+
+  `cleartextTrafficPermitted="false"` en la base es lo correcto por defecto, y
+  los dominios de abajo son la excepción deliberada: el servidor de desarrollo
+  y los alias que usa el emulador. Todo lo demás sigue exigiendo HTTPS.
+
+  ANTES DE PUBLICAR: servir la API por HTTPS y borrar este archivo. Dejar el
+  cleartext abierto permite que alguien en la misma red lea el tráfico, que en
+  esta app incluye el token de sesión y las contraseñas.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- El propio teléfono, cuando el puerto viene tunelizado por adb. -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <!-- El host visto desde el emulador de Android. -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <!-- La máquina de desarrollo en la red local. -->
+        <domain includeSubdomains="false">192.168.0.87</domain>
+        <domain includeSubdomains="false">172.22.13.9</domain>
+    </domain-config>
+</network-security-config>

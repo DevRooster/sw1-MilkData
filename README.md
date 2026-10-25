@@ -1,180 +1,107 @@
-# MilkData API
+# MilkData
 
-Backend REST para la gestion de proveedores, entregas y control de calidad.
+Monorepo con dos partes independientes:
 
-## Requisitos
+```text
+backend/    API REST en Node + Express + Sequelize + MySQL
+frontend/   App móvil en Flutter
+```
 
-- Node.js 18 o superior
-- pnpm
-- MySQL 8
+Cada carpeta tiene su propia documentación y sus propias dependencias. No comparten
+`node_modules` ni configuración.
 
-## Instalacion
+## Backend
+
+La documentación completa está en [`backend/README.md`](backend/README.md).
+
+### Con Docker (lo más simple)
+
+Levanta MySQL y la API sin instalar nada más:
 
 ```bash
+cd backend
+docker compose up -d --build
+docker compose exec api node scripts/seed.js
+```
+
+- API: <http://localhost:3000>
+- Swagger: <http://localhost:3000/api-docs>
+- MySQL: `localhost:3307` (3306 lo ocupa Laragon)
+
+```bash
+docker compose logs -f api    # ver el arranque
+docker compose down           # apagar (conserva los datos)
+docker compose down -v        # apagar y borrar la base
+```
+
+### ⚠️ La máquina solo tiene 7,9 GB de RAM
+
+Docker, Gradle y el analizador de Dart no caben juntos. **El orden importa:**
+
+```bash
+cd backend && docker compose down     # ANTES de flutter build / flutter run
+cd frontend && flutter build apk
+cd backend && docker compose up -d    # después de compilar
+```
+
+Y después de compilar, parada de daemons: en `frontend\android` se ejecuta
+`gradlew --stop`, y se matan `dartaotruntime`, `dartvm` y
+`dart development-service`. Sin eso la máquina se queda sin memoria y el
+siguiente `flutter analyze` falla con errores que no son de código.
+
+### Dónde viven los datos
+
+La base **no** está en el repositorio: está en el volumen de Docker
+`milkdata_mysql_data`. `docker compose down` lo conserva; `down -v` lo borra.
+Para verlo:
+
+```bash
+docker volume inspect milkdata_mysql_data
+```
+
+### Conectar el móvil
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\conectar-telefono.ps1
+```
+
+Repone `adb reverse tcp:3000 tcp:3000`, que **se cae cada vez** que se desenchufa
+el cable, se reinicia el móvil o se lanza `flutter run`. Con `-Vigilar` lo
+repone solo cada pocos segundos. No hace falta tocar el cortafuegos mientras se
+use USB; por WiFi sí, y el perfil de red de Windows está en **Público**.
+
+### Sin Docker
+
+```bash
+cd backend
 pnpm install
+pnpm run seed       # datos iniciales (admin@milkdata.com / Superadmin123!)
+pnpm start          # http://localhost:3000
+pnpm test           # 559 tests
 ```
 
-Copia `.env.example` a `.env` y ajusta las credenciales de MySQL:
+## Frontend
+
+App móvil en Flutter. Ver [`frontend/README.md`](frontend/README.md).
 
 ```bash
-copy .env.example .env
+cd frontend
+flutter pub get
+flutter run          # con el celular conectado por USB y depuracion activa
 ```
 
-Variables principales:
-
-```text
-PORT=3000
-DB_NAME=milkdata
-DB_USER=root
-DB_PASSWORD=
-DB_HOST=localhost
-DB_PORT=3306
-JWT_SECRET=mi-secreto-super-seguro-para-milkdata-2026
-JWT_EXPIRES_IN=7d
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX=100
-```
-
-## Base de datos
-
-Crea la base de datos antes de sincronizar las entidades:
+## Comandos útiles desde la raiz
 
 ```bash
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS milkdata CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-node sync-entities.js
+cd backend  && pnpm test     # la API
+cd frontend && flutter analyze && flutter test
 ```
 
-El comando de sincronizacion usa las credenciales de `.env`.
+## Estado
 
-## Seed
+Los **13 módulos** del móvil están hechos. La ficha de cada uno, las reglas que
+salieron de cada paso y lo que queda por decidir están en
+[`ROADMAP.md`](ROADMAP.md).
 
-El seed crea 5 roles, 4 unidades, 4 zonas, el usuario administrador y 5 proveedores:
-
-```bash
-pnpm run seed
-```
-
-Es idempotente: usa claves naturales (`nombre`, `email`, `dni`) y no duplica registros al ejecutarse varias veces.
-
-Credenciales del administrador:
-
-```text
-email: admin@milkdata.com
-password: Admin123!
-```
-
-## Servidor
-
-Desarrollo con nodemon:
-
-```bash
-pnpm run dev
-```
-
-Produccion/local sin watcher:
-
-```bash
-pnpm start
-```
-
-El servidor escucha por defecto en `http://localhost:3000`.
-
-## Tests
-
-Suite completa con cobertura:
-
-```bash
-pnpm test
-```
-
-Pruebas unitarias:
-
-```bash
-pnpm run test:unit
-```
-
-Pruebas de integracion:
-
-```bash
-pnpm run test:integration
-```
-
-Las pruebas de reportes crean entregas y controles reales en MySQL, validan los calculos y limpian sus datos temporales.
-
-## Endpoints principales
-
-### Salud y documentacion
-
-```text
-GET  /health
-GET  /api-docs/
-GET  /api-docs.json
-```
-
-### Autenticacion
-
-```text
-POST /auth/register
-POST /auth/login
-```
-
-Ejemplo de login:
-
-```bash
-curl -X POST http://localhost:3000/auth/login ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"admin@milkdata.com\",\"password\":\"Admin123!\"}"
-```
-
-La respuesta contiene un token JWT. Usalo como `Authorization: Bearer <token>` en rutas protegidas.
-
-### Recursos
-
-```text
-POST   /proveedores
-PUT    /proveedores/:id
-DELETE /proveedores/:id
-
-GET    /unidades
-POST   /unidades
-PUT    /unidades/:id
-DELETE /unidades/:id
-
-GET    /zonas
-POST   /zonas
-GET    /entregas
-POST   /entregas
-GET    /calidad
-POST   /calidad
-GET    /notificaciones
-POST   /notificaciones
-POST   /notificaciones/enviar
-GET    /asistencias
-POST   /asistencias
-```
-
-### Reportes
-
-```text
-GET /reportes/contraste
-GET /reportes/calidad
-GET /reportes/calidad-proveedor
-```
-
-Las respuestas usan el formato:
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Operacion exitosa",
-  "errors": []
-}
-```
-
-## Estado conocido
-
-- Swagger documenta actualmente login, proveedores y reporte de calidad; los aproximadamente 37 endpoints restantes estan pendientes de documentacion.
-- El circuit breaker y retry estan aplicados al envio de notificaciones.
-- Logout devuelve confirmacion, pero no invalida JWT ya emitidos porque la autenticacion es stateless.
-- Bulkhead, timeout, load balancer y rate limiter general estan omitidos hasta que exista un flujo externo que los necesite.
+**Aviso importante:** el frontend **no está versionado en git**. Los commits que
+hay son del backend. Si se pierde la carpeta, se pierden las trece pantallas.

@@ -1,0 +1,31 @@
+# Qué se envía al contexto de Docker y qué no.
+
+# Pesan mucho y se rearman con `pnpm install` dentro de la imagen.
+node_modules
+coverage
+
+# Nunca debe entrar en la imagen: aquí van los secretos del despliegue.
+# Compose pasa las variables de entorno explícitamente.
+.env
+.env.*
+!.env.example
+
+# Datos locales: en Docker viven en volúmenes.
+uploads
+
+# Ruido de herramientas.
+.git
+.gitignore
+.vscode
+.idea
+*.iml
+npm-debug.log*
+*.log
+bootstrap-output.txt
+
+# Documentación y archivos que la imagen no necesita en ejecución.
+README.md
+PROGRESS.md
+Dockerfile
+.dockerignore
+docker-compose.yml

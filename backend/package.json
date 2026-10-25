@@ -1,0 +1,55 @@
+{
+  "name": "milkdata-backend",
+  "version": "2.0.0",
+  "description": "MilkData API backend for Planta Ecológica Huata",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "db:sync": "node scripts/db-sync.js",
+    "db:schema": "node scripts/db-schema.js",
+    "db:counts": "node scripts/db-counts.js",
+    "db:spec": "node scripts/db-spec-check.js",
+    "db:clean": "node tests/helpers/limpiar-base.js",
+    "seed": "node scripts/seed.js",
+    "test": "jest --coverage",
+    "test:unit": "jest --testPathPatterns=tests/unit",
+    "test:integration": "jest --runInBand --testPathPatterns=tests/integration",
+    "test:rutas": "jest --runInBand --testPathPatterns=tests/integration/(rutas|recorridos)",
+    "test:uploads": "jest --runInBand --testPathPatterns=tests/integration/uploads"
+  },
+  "keywords": [
+    "milkdata",
+    "api",
+    "express",
+    "sequelize",
+    "mysql"
+  ],
+  "author": "Planta Ecológica Huata",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.12.0",
+    "multer": "^2.4.0",
+    "mysql2": "^3.24.3",
+    "opossum": "^10.0.0",
+    "sequelize": "^6.37.8",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "jest": "^30.5.1",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
+  }
+}
